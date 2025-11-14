@@ -1,0 +1,122 @@
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "../features/auth/authSlice";
+import { useNavigate, Link } from "react-router-dom";
+import { Mail, Lock, Briefcase } from "lucide-react";
+
+const Login = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { user,loading, error } = useSelector((state) => state.auth);
+
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    role: "", // Added role field
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    dispatch(loginUser(formData)).then((res) => {
+      if (!res.error) {
+      const role = res.payload?.user?.role || formData.role;
+
+      if (role === "Admin") navigate("/admin-dashboard");
+      else if (role === "Manager") navigate("/manager-dashboard");
+      else if (role === "SalesRep") navigate("/sales-dashboard");
+    }
+    });
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-md">
+        <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
+          Welcome Back
+        </h2>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {/* Email Field */}
+          <div className="relative">
+            <Mail className="absolute left-3 top-3 text-gray-500" size={20} />
+            <input
+              type="email"
+              name="email"
+              placeholder="Email Address"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Password Field */}
+          <div className="relative">
+            <Lock className="absolute left-3 top-3 text-gray-500" size={20} />
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Role Field */}
+          <div className="relative">
+            <Briefcase className="absolute left-3 top-3 text-gray-500" size={20} />
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              required
+              className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="" disabled>
+                Select Role
+              </option>
+              <option value="Admin">Admin</option>
+              <option value="Manager">Manager</option>
+              <option value="SalesRep">Sales Representative</option>
+            </select>
+          </div>
+
+          {/* Login Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition-all disabled:opacity-60"
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
+
+        {/* Signup Redirect */}
+        <p className="text-center text-sm text-gray-600 mt-4">
+          Don’t have an account?{" "}
+          <Link
+            to="/signup"
+            className="text-blue-600 hover:underline font-medium"
+          >
+            Sign Up
+          </Link>
+        </p>
+
+        {/* Error Message */}
+        {error && (
+          <p className="text-center text-red-500 mt-3 text-sm font-medium">
+            {error}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Login;
